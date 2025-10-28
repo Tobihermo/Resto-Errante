@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Reserva{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="text-center"><i class="fas fa-utensils"></i> Crear Nueva Reserva</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control", placeholder="Ej: Cena de Cumpleaños Juan") }}
+                        {% for error in form.title.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.date.label(class="form-label") }}
+                            <input type="datetime-local" 
+                                   name="date" 
+                                   id="date"
+                                   class="form-control"
+                                   required>
+                            <small class="form-text text-muted">{{ form.date.description }}</small>
+                            {% for error in form.date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.event_type.label(class="form-label") }}
+                            {{ form.event_type(class="form-select") }}
+                            {% for error in form.event_type.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.guest_count.label(class="form-label") }}
+                            {{ form.guest_count(class="form-control") }}
+                            {% for error in form.guest_count.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch mb-2">
+                                {{ form.is_free(class="form-check-input", checked=true) }}
+                                {{ form.is_free.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check form-switch">
+                                {{ form.is_private(class="form-check-input") }}
+                                {{ form.is_private.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+
+               
+                    <div class="row">
+                        <div class="col-md-6 mb-3" id="price-field" style="display: none;">
+                            {{ form.price.label(class="form-label") }}
+                            {{ form.price(class="form-control", step="0.01", min="1") }}
+                            <small class="form-text text-muted">Precio por persona (mínimo $1)</small>
+                            {% for error in form.price.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                  
+                        <div class="col-md-6 mb-3" id="access-code-field" style="display: none;">
+                            {{ form.access_code.label(class="form-label") }}
+                            {{ form.access_code(class="form-control", placeholder="Codigo para acceder a la reserva") }}
+                            <small class="form-text text-muted">Los invitados necesitaran este codigo para unirse</small>
+                            {% for error in form.access_code.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Seleccionar Mesas:</label>
+                        <div class="tables-grid">
+                            {% for table in available_tables %}
+                            <div class="table-card {% if not table.is_available %}table-unavailable{% endif %}">
+                                <input type="checkbox" 
+                                       name="selected_tables" 
+                                       value="{{ table.table_number }}" 
+                                       id="table-{{ table.table_number }}"
+                                       class="table-checkbox"
+                                       {% if not table.is_available %}disabled{% endif %}>
+                                <label for="table-{{ table.table_number }}" class="table-label">
+                                    <div class="table-number">Mesa {{ table.table_number }}</div>
+                                    <div class="table-info">
+                                        <small>Capacidad: {{ table.capacity }} personas</small><br>
+                                        <small>{{ table.location }}</small>
+                                    </div>
+                                    {% if not table.is_available %}
+                                    <div class="table-status unavailable">Ocupada</div>
+                                    {% else %}
+                                    <div class="table-status available">Disponible</div>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <small class="form-text text-muted">Selecciona una o mas mesas para tu reserva</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.short_description.label(class="form-label") }}
+                        {{ form.short_description(class="form-control", rows="3", placeholder="Descripción breve de la reserva...") }}
+                        {% for error in form.short_description.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.long_description.label(class="form-label") }}
+                        {{ form.long_description(class="form-control", rows="5", placeholder="Descripción detallada (opcional)...") }}
+                        {% for error in form.long_description.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.special_requirements.label(class="form-label") }}
+                        {{ form.special_requirements(class="form-control", rows="3", placeholder="Dietas especiales, alergias, requisitos específicos...") }}
+                        {% for error in form.special_requirements.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.table-card {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.table-card:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.table-checkbox {
+    display: none;
+}
+
+.table-checkbox:checked + .table-label {
+    background-color: #e7f3ff;
+    border-color: #007bff;
+}
+
+.table-label {
+    display: block;
+    cursor: pointer;
+    margin: 0;
+}
+
+.table-number {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.table-info {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+.table-status {
+    font-size: 0.75em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.table-status.available {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.table-status.unavailable {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.table-unavailable {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.table-unavailable .table-label {
+    cursor: not-allowed;
+}
+
+.form-check-switch {
+    margin-bottom: 10px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isFreeCheckbox = document.getElementById('{{ form.is_free.id }}');
+    const priceField = document.getElementById('price-field');
+    const isPrivateCheckbox = document.getElementById('{{ form.is_private.id }}');
+    const accessCodeField = document.getElementById('access-code-field');
+    
+    function togglePriceField() {
+        if (isFreeCheckbox.checked) {
+            priceField.style.display = 'none';
+            document.getElementById('{{ form.price.id }}').value = '0';
+        } else {
+            priceField.style.display = 'block';
+        }
+    }
+    
+    function toggleAccessCodeField() {
+        if (isPrivateCheckbox.checked) {
+            accessCodeField.style.display = 'block';
+        } else {
+            accessCodeField.style.display = 'none';
+            document.getElementById('{{ form.access_code.id }}').value = '';
+        }
+    }
+    
+    isFreeCheckbox.addEventListener('change', togglePriceField);
+    isPrivateCheckbox.addEventListener('change', toggleAccessCodeField);
+    
+    togglePriceField(); 
+    toggleAccessCodeField();
+    
+    const dateField = document.getElementById('date');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    dateField.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+});
+</script>
+{% endblock %}

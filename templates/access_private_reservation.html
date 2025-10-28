@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Acceder a Reserva Privada{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="text-center mb-0">
+                    <i class="fas fa-key"></i> Unirse a Reserva Privada
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Como unirte a una reserva privada?</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Solicita el codigo de acceso al organizador</li>
+                        <li>Ingresa el codigo en el campo de abajo</li>
+                        <li>Seras registrado automaticamente en la reserva!</li>
+                    </ul>
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="access_code" class="form-label">
+                            <i class="fas fa-lock"></i> Codigo de Acceso:
+                        </label>
+                        <input type="text" 
+                               name="access_code" 
+                               id="access_code"
+                               class="form-control form-control-lg" 
+                               placeholder="Ingresa el codigo proporcionado por el organizador" 
+                               required
+                               maxlength="20">
+                        <small class="form-text text-muted">
+                            Al ingresar el codigo correcto, seras registrado automaticamente en la reserva
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-info btn-lg">
+                            <i class="fas fa-unlock"></i> Unirse a la Reserva
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control-lg {
+    font-size: 1.1rem;
+    padding: 12px 16px;
+}
+</style>
+{% endblock %}

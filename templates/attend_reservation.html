@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Unirse a Reserva - {{ reservation.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h3>{{ reservation.title }}</h3>
+                <p class="text-muted">{{ reservation.location }} - {{ reservation.date[:16] }}</p>
+                
+                <h5>Selecciona tu comida:</h5>
+                
+                <form method="POST">
+                    {% for category in categories %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6>{{ category.name }}</h6>
+                        </div>
+                        <div class="card-body">
+                            {% set displayed_items = [] %}
+                            {% for item in menu_items %}
+                                {% if item.category_id == category.id %}
+                                    {% if item.name not in displayed_items %}
+                                        {% if displayed_items.append(item.name) %}{% endif %}
+                                        <div class="row mb-2 align-items-center">
+                                            <div class="col-md-6">
+                                                <strong>{{ item.name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ item.description }}</small>
+                                                <br>
+                                                <small><strong>Precio: ${{ "%.2f"|format(item.price) }}</strong></small>
+                                                {% if item.dietary_info %}
+                                                <br>
+                                                <small class="text-info">{{ item.dietary_info }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-3">
+                                                <select name="food_{{ item.id }}" class="form-select">
+                                                    {% for i in range(0, 6) %}
+                                                    <option value="{{ i }}">{{ i }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            {% if reservation.is_free %}
+                                <i class="fas fa-check"></i> Confirmar Asistencia
+                            {% else %}
+                                <i class="fas fa-shopping-cart"></i> Proceder al Pago
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Resumen de la Reserva</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Tipo:</strong> {{ reservation.event_type_name }}</p>
+                <p><strong>Mesas:</strong> {{ reservation.table_count }}</p>
+                <p><strong>Invitados:</strong> {{ reservation.guest_count }}</p>
+                {% if reservation.special_requirements %}
+                <p><strong>Requisitos Especiales:</strong> {{ reservation.special_requirements }}</p>
+                {% endif %}
+                
+                {% if not reservation.is_free %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-tag"></i> Precio por persona: ${{ "%.2f"|format(reservation.price) }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

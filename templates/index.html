@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Resto Errante{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> Filtros</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar reservas..." value="{{ query }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Evento:</label>
+                        <select name="event_type" class="form-select">
+                            <option value="">Todos los tipos</option>
+                            {% for event_type in event_types %}
+                            <option value="{{ event_type.id }}" {% if selected_event_type == event_type.id|string %}selected{% endif %}>
+                                {{ event_type.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Precio:</label>
+                        <select name="is_free" class="form-select">
+                            <option value="">Todas las reservas</option>
+                            <option value="true" {% if is_free == True %}selected{% endif %}>Gratuitas</option>
+                            <option value="false" {% if is_free == False %}selected{% endif %}>Pagas</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Aplicar Filtros
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        {% if session.logged_in %}
+        <div class="mt-3">
+            <a href="{{ url_for('create_reservation') }}" class="btn btn-success w-100">
+                <i class="fas fa-plus"></i> Crear Reserva
+            </a>
+        </div>
+        {% endif %}
+        
+        <div class="mt-3">
+            <a href="{{ url_for('menu') }}" class="btn btn-info w-100">
+                <i class="fas fa-utensils"></i> Ver Menu
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-calendar-check"></i> Reservas Disponibles</h2>
+            <div>
+                {% if session.logged_in %}
+                <a href="{{ url_for('my_reservations') }}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-list"></i> Mis Reservas
+                </a>
+                <a href="{{ url_for('access_private_reservation') }}" class="btn btn-info">
+                    <i class="fas fa-key"></i> Acceder a Reserva Privada
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if reservations %}
+            <div class="row">
+                {% for reservation in reservations %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ reservation.title }}</h5>
+                                <div>
+                                    {% if reservation.is_free %}
+                                        <span class="badge bg-success">Gratuito</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">${{ reservation.price }}</span>
+                                    {% endif %}
+                                    {% if reservation.is_private %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-lock"></i> Privada
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <p class="card-text">{{ reservation.short_description }}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ reservation.date[:16] }}<br>
+                                    <i class="fas fa-map-marker-alt"></i> {{ reservation.location }}<br>
+                                    <i class="fas fa-user"></i> Organizador: {{ reservation.creator_username }}<br>
+                                    <i class="fas fa-utensils"></i> {{ reservation.event_type_name }}<br>
+                                    <i class="fas fa-users"></i> {{ reservation.guest_count }} invitados • 
+                                    <i class="fas fa-table"></i> {{ reservation.table_count }} mesa{% if reservation.table_count > 1 %}s{% endif %}
+                                </small>
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            {% if reservation.is_private %}
+                                <a href="{{ url_for('access_private_reservation') }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-key"></i> Acceder con Codigo
+                                </a>
+                                <span class="badge bg-secondary ms-2">
+                                    <i class="fas fa-lock"></i> Codigo requerido
+                                </span>
+                            {% else %}
+                                <a href="{{ url_for('reservation_detail', reservation_id=reservation.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Ver Detalles
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h4>No se encontraron reservas publicas</h4>
+                <p>No hay reservas publicas disponibles con los filtros seleccionados.</p>
+                {% if session.logged_in %}
+                <div class="mt-3">
+                    <a href="{{ url_for('create_reservation') }}" class="btn btn-success me-2">
+                        <i class="fas fa-plus"></i> Crear Reserva
+                    </a>
+                    <a href="{{ url_for('access_private_reservation') }}" class="btn btn-info">
+                        <i class="fas fa-key"></i> Acceder a Reserva Privada
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

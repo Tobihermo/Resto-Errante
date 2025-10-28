@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Comprar Entradas - {{ reservation.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="text-center"><i class="fas fa-ticket-alt"></i> Comprar Entradas</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h5>{{ reservation.title }}</h5>
+                    <p class="text-muted">{{ reservation.location }} - {{ reservation.date[:16] }}</p>
+                    <h4 class="text-primary">${{ reservation.price }} por persona</h4>
+                </div>
+
+                {% if food_selections %}
+                <div class="mb-3 p-3 bg-light rounded">
+                    <h6>Comida seleccionada:</h6>
+                    {% for item_id, quantity in food_selections.items() %}
+                        {% if quantity > 0 %}
+                            {% set menu_item = None %}
+                            {% for item in all_menu_items %}
+                                {% if item.id|string == item_id %}
+                                    {% set menu_item = item %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if menu_item %}
+                                <small class="d-block">
+                                    {{ menu_item.name }} x{{ quantity }} - ${{ "%.2f"|format(menu_item.price * quantity) }}
+                                </small>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="tickets_count" class="form-label">Cantidad de entradas:</label>
+                        <select name="tickets_count" id="tickets_count" class="form-select" required>
+                            {% for i in range(1, 11) %}
+                            <option value="{{ i }}">{{ i }} entrada{% if i > 1 %}s{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6>Resumen de compra:</h6>
+                        <p id="total-cost">Total: ${{ reservation.price }}</p>
+                        <p><strong>Saldo disponible: ${{ "%.2f"|format(user.balance) }}</strong></p>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-shopping-cart"></i> Confirmar Compra
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('reservation_detail', reservation_id=reservation.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a la Reserva
+                    </a>
+                    {% if user.balance < reservation.price %}
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary">
+                        <i class="fas fa-wallet"></i> Cargar Saldo
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ticketsCount = document.getElementById('tickets_count');
+    const totalCost = document.getElementById('total-cost');
+    const price = {{ reservation.price }};
+    
+    function updateTotal() {
+        const count = parseInt(ticketsCount.value);
+        const total = price * count;
+        totalCost.textContent = `Total: $${total}`;
+    }
+    
+    ticketsCount.addEventListener('change', updateTotal);
+    updateTotal(); 
+});
+</script>
+{% endblock %}

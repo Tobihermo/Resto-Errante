@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Favoritos{% endblock %}
+
+{% block content %}
+<h2><i class="fas fa-heart"></i> Mis Reservas Favoritas</h2>
+
+{% if favorites %}
+    <div class="row">
+        {% for reservation in favorites %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title">{{ reservation.title }}</h5>
+                        <form method="POST" action="{{ url_for('unfavorite_reservation', reservation_id=reservation.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                    onclick="return confirm('¿Estás seguro de que quieres quitar esta reserva de favoritos?')">
+                                <i class="fas fa-heart-broken"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <p class="card-text">{{ reservation.short_description }}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> {{ reservation.date[:16] }}<br>
+                            <i class="fas fa-map-marker-alt"></i> {{ reservation.location }}<br>
+                            <i class="fas fa-user"></i> Organizador: {{ reservation.creator_username }}<br>
+                            <i class="fas fa-utensils"></i> {{ reservation.event_type_name }}
+                        </small>
+                    </p>
+                    
+                    {% if reservation.is_free %}
+                        <span class="badge bg-success">Gratuito</span>
+                    {% else %}
+                        <span class="badge bg-warning">${{ reservation.price }}</span>
+                    {% endif %}
+                    
+                    {% if reservation.is_private %}
+                        <span class="badge bg-info">Privada</span>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('reservation_detail', reservation_id=reservation.id) }}" 
+                       class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-heart fa-2x mb-3"></i>
+        <h4>No tienes reservas favoritas</h4>
+        <p>Agrega reservas a tus favoritos haciendo clic en el ícono de corazón en la pagina de detalles de cada reserva</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="fas fa-search"></i> Explorar Reservas
+        </a>
+    </div>
+{% endif %}
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+</style>
+{% endblock %}

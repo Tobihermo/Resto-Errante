@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Mesas Disponibles{% endblock %}
+
+{% block content %}
+<h2><i class="fas fa-table"></i> Mesas Disponibles</h2>
+
+<div class="row">
+    {% for table in tables %}
+    <div class="col-md-3 mb-3">
+        <div class="card {% if table.is_available %}border-success{% else %}border-danger{% endif %}">
+            <div class="card-body text-center">
+                <h5 class="card-title">Mesa {{ table.table_number }}</h5>
+                <p class="card-text">
+                    Capacidad: {{ table.capacity }} personas<br>
+                    Ubicación: {{ table.location }}
+                </p>
+                {% if table.is_available %}
+                    <span class="badge bg-success">Disponible</span>
+                {% else %}
+                    <span class="badge bg-danger">Ocupada</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

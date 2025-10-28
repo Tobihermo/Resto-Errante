@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dejar Reseña - {{ reservation.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-star"></i> Dejar Reseña</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>{{ reservation.title }}</h5>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-calendar"></i> {{ reservation.date[:16] }}
+                    </p>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-map-marker-alt"></i> {{ reservation.location }}
+                    </p>
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Calificacion:</label>
+                        <div class="rating-stars mb-2">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                            <label for="star{{ i }}" title="{{ i }} estrellas">
+                                <i class="fas fa-star"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">Selecciona de 1 a 5 estrellas</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="comment" class="form-label fw-bold">Comentario (opcional):</label>
+                        <textarea name="comment" class="form-control" rows="5" 
+                                  placeholder="Comparte tu experiencia en este evento... 
+¿Qué te gustó? 
+¿Qué mejorarías?
+¿Recomendarías este tipo de evento?"
+                                  maxlength="500"></textarea>
+                        <small class="text-muted">Maximo 500 caracteres</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('reservation_detail', reservation_id=reservation.id) }}" 
+                           class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Enviar Reseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+.rating-stars input {
+    display: none;
+}
+
+.rating-stars label {
+    cursor: pointer;
+    font-size: 2.5rem;
+    color: #ddd;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+    color: #ffc107;
+    transform: scale(1.1);
+}
+
+.rating-stars input:checked ~ label {
+    color: #ffc107;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.rating-stars input');
+    const labels = document.querySelectorAll('.rating-stars label');
+    
+    stars.forEach((star, index) => {
+        star.addEventListener('change', function() {
+            labels.forEach(label => {
+                label.style.transform = 'scale(1)';
+            });
+            
+            if (this.checked) {
+                const selectedIndex = 4 - index; 
+                for (let i = 0; i <= selectedIndex; i++) {
+                    labels[i].style.transform = 'scale(1.2)';
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

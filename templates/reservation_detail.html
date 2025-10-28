@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}{{ reservation.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">{{ reservation.title }}</h2>
+                
+                {% if reservation.is_cancelled %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Esta reserva ha sido cancelada
+                    </div>
+                {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-calendar"></i> Fecha:</strong> {{ reservation.date[:16] }}</p>
+                        <p><strong><i class="fas fa-map-marker-alt"></i> Ubicación:</strong> {{ reservation.location }}</p>
+                        <p><strong><i class="fas fa-utensils"></i> Tipo de Evento:</strong> {{ reservation.event_type_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-user"></i> Organizador:</strong> {{ reservation.creator_username }}</p>
+                        <p><strong><i class="fas fa-users"></i> Invitados:</strong> {{ reservation.guest_count }}</p>
+                        <p><strong><i class="fas fa-table"></i> Mesas Reservadas:</strong> {{ reservation.table_count }}</p>
+                        {% if reservation.is_free %}
+                            <p><strong><i class="fas fa-tag"></i> Precio:</strong> <span class="badge bg-success">Gratuito</span></p>
+                        {% else %}
+                            <p><strong><i class="fas fa-tag"></i> Precio por persona:</strong> <span class="badge bg-warning">${{ reservation.price }}</span></p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if reservation_tables %}
+                <div class="mb-3">
+                    <h5><i class="fas fa-table"></i> Mesas Reservadas</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for table in reservation_tables %}
+                        <span class="badge bg-primary fs-6 p-2">
+                            <i class="fas fa-table me-1"></i> Mesa {{ table.table_number }}
+                            <small class="ms-1">({{ table.capacity }} personas)</small>
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if reservation.special_requirements %}
+                <div class="mb-3">
+                    <h5>Requisitos Especiales</h5>
+                    <p class="card-text">{{ reservation.special_requirements }}</p>
+                </div>
+                {% endif %}
+                
+                <h5>Descripción</h5>
+                <p class="card-text">{{ reservation.long_description or reservation.short_description }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-star"></i> Reseñas</h5>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                    <div class="reviews-container">
+                        {% for review in reviews %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="card-title mb-0">{{ review.user_name or review.username }}</h6>
+                                    <div class="rating">
+                                        {% for i in range(1, 6) %}
+                                            <i class="fas fa-star {% if i <= review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% if review.comment %}
+                                    <p class="card-text">{{ review.comment }}</p>
+                                {% else %}
+                                    <p class="card-text text-muted"><em>Sin comentario</em></p>
+                                {% endif %}
+                                <small class="text-muted">{{ review.created_at[:16] }}</small>
+                                
+                                {% if session.user_id == review.user_id %}
+                                <div class="mt-2">
+                                    <form method="POST" action="{{ url_for('delete_review', review_id=review.id) }}" 
+                                          onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta reseña?')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> Esta reserva aún no tiene reseñas.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Acciones</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if not session.logged_in %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Inicia sesión para unirte a esta reserva
+                    </div>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </a>
+                
+                {% else %}
+                    {% if reservation.creator_id == session.user_id %}
+                        {% if not reservation.is_cancelled %}
+                            <form method="POST" action="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}" 
+                                  class="w-100 mb-2">
+                                <button type="submit" class="btn btn-danger w-100" 
+                                        onclick="return confirm('¿Estás seguro de que quieres cancelar esta reserva?')">
+                                    <i class="fas fa-times"></i> Cancelar Reserva
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        {% if reservation.is_private %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Eres el organizador de esta reserva privada
+                            <hr class="my-2">
+                            <strong>Codigo de acceso:</strong> 
+                            <div class="d-flex align-items-center justify-content-center mt-1">
+                                <code class="bg-light p-1 rounded border flex-grow-1 me-2">
+                                    {{ reservation.access_code }}
+                                </code>
+                                <button class="btn btn-outline-secondary btn-sm" 
+                                        onclick="copyToClipboard('{{ reservation.access_code }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Comparte este codigo con tus invitados</small>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Eres el organizador de esta reserva
+                        </div>
+                        {% endif %}
+                    
+                    {% else %}
+                        
+                        {% if not reservation.is_cancelled and not is_attending %}
+                            {% if reservation.is_private %}
+                                <a href="{{ url_for('access_private_reservation') }}" 
+                                   class="btn btn-info w-100 mb-2">
+                                    <i class="fas fa-key"></i> Acceder con Codigo
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('attend_reservation', reservation_id=reservation.id) }}" 
+                                   class="btn btn-success w-100 mb-2">
+                                    {% if reservation.is_free %}
+                                        <i class="fas fa-utensils"></i> Unirse a la Reserva
+                                    {% else %}
+                                        <i class="fas fa-ticket-alt"></i> Reservar y Pagar
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if is_attending %}
+                            <div class="alert alert-success mb-2">
+                                <i class="fas fa-check"></i> Ya estas registrado en esta reserva
+                            </div>
+                            
+                            {% if not reservation.is_cancelled %}
+                                <a href="{{ url_for('cancel_attendance', reservation_id=reservation.id) }}" 
+                                   class="btn btn-warning w-100 mb-2"
+                                   onclick="return confirm('¿Estás seguro de que quieres cancelar tu asistencia a esta reserva?')">
+                                    <i class="fas fa-user-times"></i> Cancelar Mi Asistencia
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <div class="mt-2">
+                            {% if not is_favorite %}
+                                <form method="POST" action="{{ url_for('toggle_favorite', reservation_id=reservation.id) }}">
+                                    <button type="submit" class="btn btn-outline-danger w-100">
+                                        <i class="fas fa-heart"></i> Agregar a Favoritos
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('toggle_favorite', reservation_id=reservation.id) }}">
+                                    <button type="submit" class="btn btn-danger w-100">
+                                        <i class="fas fa-heart"></i> En Favoritos
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        {% if is_attending and not reservation.is_cancelled %}
+                            <div class="mt-3">
+                                {% if not user_has_reviewed %}
+                                    <a href="{{ url_for('add_review', reservation_id=reservation.id) }}" 
+                                       class="btn btn-warning w-100">
+                                        <i class="fas fa-star"></i> Dejar Reseña
+                                    </a>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-check"></i> Ya dejaste una reseña para esta reserva
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Informacion de la Reserva</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Estado:</strong> 
+                    {% if reservation.is_cancelled %}
+                        <span class="badge bg-danger">Cancelado</span>
+                    {% else %}
+                        <span class="badge bg-success">Activo</span>
+                    {% endif %}
+                </p>
+                
+                <p><strong>Tipo:</strong> 
+                    {% if reservation.is_free %}
+                        <span class="badge bg-success">Gratuito</span>
+                    {% else %}
+                        <span class="badge bg-warning">Pago</span>
+                    {% endif %}
+                </p>
+                
+                <p><strong>Acceso:</strong> 
+                    {% if reservation.is_private %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-lock"></i> Privado
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-globe"></i> Público
+                        </span>
+                    {% endif %}
+                </p>
+                
+                <p><strong>Mesas:</strong> 
+                    <span class="badge bg-primary">{{ reservation.table_count }}</span>
+                </p>
+                
+                <p><strong>Creado:</strong> {{ reservation.created_at[:10] }}</p>
+                
+                {% if reservation.is_private and session.user_id == reservation.creator_id %}
+                <hr>
+                <p class="mb-1"><strong>Código de acceso:</strong></p>
+                <div class="d-flex align-items-center">
+                    <code class="bg-light p-1 rounded border flex-grow-1">
+                        {{ reservation.access_code }}
+                    </code>
+                    <button class="btn btn-outline-secondary btn-sm ms-2" 
+                            onclick="copyToClipboard('{{ reservation.access_code }}')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Comparte este codigo con tus invitados</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge {
+    font-size: 0.85em;
+}
+
+.fs-6 {
+    font-size: 1rem !important;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.rating {
+    color: #ffc107;
+}
+</style>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '<i class="fas fa-check"></i>';
+        event.target.classList.remove('btn-outline-secondary');
+        event.target.classList.add('btn-success');
+        
+        setTimeout(function() {
+            event.target.innerHTML = originalText;
+            event.target.classList.remove('btn-success');
+            event.target.classList.add('btn-outline-secondary');
+        }, 2000);
+    }, function(err) {
+        console.error('Error al copiar: ', err);
+        alert('Error al copiar el codigo. Intenta manualmente: ' + text);
+    });
+}
+</script>
+{% endblock %}

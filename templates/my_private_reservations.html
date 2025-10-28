@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Reservas Privadas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-lock"></i> Mis Reservas Privadas</h2>
+            <a href="{{ url_for('create_reservation') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Crear Nueva Reserva
+            </a>
+        </div>
+
+        {% if private_reservations %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Estas son las reservas privadas que has creado. Comparte los codigos de acceso con tus invitados
+            </div>
+
+            <div class="row">
+                {% for reservation in private_reservations %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-info">
+                        <div class="card-header bg-info text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">{{ reservation.title }}</h5>
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-lock"></i> Privada
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ reservation.short_description }}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ reservation.date[:16] }}<br>
+                                    <i class="fas fa-map-marker-alt"></i> {{ reservation.location }}<br>
+                                    <i class="fas fa-utensils"></i> {{ reservation.event_type_name }}<br>
+                                    <i class="fas fa-users"></i> {{ reservation.guest_count }} invitados
+                                </small>
+                            </p>
+                            
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <strong><i class="fas fa-key"></i> Codigo de Acceso:</strong>
+                                <div class="d-flex align-items-center mt-1">
+                                    <code class="bg-white p-2 rounded border flex-grow-1">
+                                        {{ reservation.access_code }}
+                                    </code>
+                                    <button class="btn btn-outline-secondary btn-sm ms-2" 
+                                            onclick="copyToClipboard('{{ reservation.access_code }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Comparte este codigo con tus invitados</small>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('reservation_detail', reservation_id=reservation.id) }}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalles
+                            </a>
+                            <a href="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('¿Estás seguro de que quieres cancelar esta reserva?')">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-lock fa-2x mb-3"></i>
+                <h4>No has creado reservas privadas</h4>
+                <p>Las reservas privadas requieren un codigo de acceso para unirse</p>
+                <a href="{{ url_for('create_reservation') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Crear Mi Primera Reserva Privada
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Código copiado al portapapeles: ' + text);
+    }, function(err) {
+        console.error('Error al copiar: ', err);
+    });
+}
+</script>
+{% endblock %}
